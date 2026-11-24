@@ -825,4 +825,15 @@
     <string name="masking_rules_error_delete_failed">Failed to delete masking rule: %1$s</string>
     <string name="masking_rules_delete_dialog_title">Delete Masking Rule</string>
     <string name="masking_rules_delete_dialog_text">Are you sure you want to delete the masking rule \"%1$s\"? This action cannot be undone.</string>
+<string name="ui_vd_fail_title">Can\'t create virtual display</string>
+<string name="ui_vd_fail_shizuku_missing">Shizuku is not installed. Install the Shizuku app, start it, authorize Zafiro, then try again.</string>
+<string name="ui_vd_fail_shizuku_not_running">Shizuku is installed but not running. Open Shizuku and start it. On Android 11 or newer use \"Start via Wireless debugging\" (no PC needed, but the phone must be connected to Wi-Fi). Shizuku stops after every reboot, so repeat this after restarting the phone.</string>
+<string name="ui_vd_fail_shizuku_not_authorized">Shizuku is running but Zafiro is not authorized. Open Shizuku, go to Authorized apps and enable Zafiro.</string>
+<string name="ui_vd_fail_overlay">Overlay (display over other apps) permission is missing. Enable it for Zafiro in system settings. Also make sure the Zafiro accessibility service is on.</string>
+<string name="ui_vd_fail_other">Shizuku looks fine, so the display itself could not be created. Check that the accessibility service and overlay permission are on, then try again. If it keeps failing, the agent will use the main screen (phone) instead.</string>
+<string name="ui_vd_status_fmt">Shizuku installed: %1$s\nShizuku running: %2$s\nZafiro authorized: %3$s\nOverlay permission: %4$s</string>
+<string name="ui_vd_yes">yes</string>
+<string name="ui_vd_no">no</string>
+<string name="ui_vd_open_shizuku">Open Shizuku</string>
+<string name="ui_vd_close">Close</string>
 </resources>

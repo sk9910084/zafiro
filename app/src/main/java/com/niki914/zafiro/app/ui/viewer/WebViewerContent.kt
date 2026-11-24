@@ -72,6 +72,11 @@ internal class WebBackdropGate {
 
 internal val LocalWebBackdropGate = staticCompositionLocalOf<WebBackdropGate?> { null }
 
+/**
+ * VIEW-ONLY viewer for local HTML reports. It is not an automation surface: there is no
+ * evaluateJavascript / addJavascriptInterface bridge, so screen_operation cannot read or click
+ * page elements here. Web tasks must run in a real browser via `open(kind='global', uri=...)`.
+ */
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
 internal fun WebViewerContent(

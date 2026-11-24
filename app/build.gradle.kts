@@ -13,7 +13,7 @@ ksp {
 
 android {
     namespace = "com.niki914.zafiro.app"
-    compileSdk = 37
+    compileSdk = 36
 
     testOptions {
         unitTests.isIncludeAndroidResources = true

@@ -16,9 +16,10 @@ class OpenBuiltin : TextResultBuiltinTool() {
     override val defaultEnabled: Boolean = true
     override val description: String =
         "Open an application or link. Two modes ('kind'):\n" +
-            "1. 'global': Launch an installed app or open a system URI onto an OS display.\n" +
-            "2. 'in_app_preview': Display a web page or local HTML report inside Zafiro's built-in viewer. " +
-            "This mode is strictly for presenting visual results directly to the user when the user asked to see or view something (not for automated task execution)."
+            "1. 'global': Launch an installed app (package_name) or open a system URI / web URL (uri) onto an OS display. " +
+            "To open a website for a task, use uri='https://...' with screen 'phone' (default browser), then drive it with screen_operation.\n" +
+            "2. 'in_app_preview': VIEW-ONLY. Shows a LOCAL HTML report file inside Zafiro's built-in viewer when the user asked to see it. " +
+            "screen_operation cannot read or click inside it, and http(s) URLs are rejected. Never use it for task execution."
     override val inputSchemaJson: String? = SCHEMA
 
     override suspend fun invokeText(request: BuiltinToolRequest): TextToolResult {
@@ -48,6 +49,13 @@ class OpenBuiltin : TextResultBuiltinTool() {
             "in_app_preview" -> {
                 val url = args.text("url")
                     ?: return invalidArguments("url is required when kind is 'in_app_preview'.")
+                if (url.startsWith("http://", ignoreCase = true) || url.startsWith("https://", ignoreCase = true)) {
+                    return TextToolResult.failure(
+                        code = "PREVIEW_REMOTE_NOT_ALLOWED",
+                        message = "in_app_preview is view-only and only for local HTML files. To browse a website " +
+                            "call open with kind='global', screen='phone', uri='<url>', then use screen_operation.",
+                    )
+                }
                 val screen = screens.require(PhoneScreenId) ?: return missingService()
                 val shown = showToText(screen.show(ShowTarget.InAppPreview(url)))
                 if (shown.status != TextToolResult.Status.Success) return shown
@@ -82,7 +90,7 @@ class OpenBuiltin : TextResultBuiltinTool() {
                 "kind": {
                   "type": "string",
                   "enum": ["global", "in_app_preview"],
-                  "description": "Opening mode: 'global' (launch app or system URI onto a display screen) or 'in_app_preview' (display web page or local HTML report directly to the user inside Zafiro's built-in viewer when explicitly requested)."
+                  "description": "Opening mode: 'global' (launch app, system URI or web URL onto a display screen) or 'in_app_preview' (view-only: show a LOCAL HTML report to the user inside Zafiro's built-in viewer when explicitly requested; never for web tasks)."
                 },
                 "screen": {
                   "type": "string",
@@ -94,11 +102,11 @@ class OpenBuiltin : TextResultBuiltinTool() {
                 },
                 "uri": {
                   "type": "string",
-                  "description": "Known-valid Android URI or deep link to open via ACTION_VIEW intent (e.g. 'tel:10086'). Used when kind='global'."
+                  "description": "Known-valid Android URI, deep link or http(s) URL to open via ACTION_VIEW intent (e.g. 'tel:10086', 'https://www.google.com'). Web URLs open in the default browser. Used when kind='global'."
                 },
                 "url": {
                   "type": "string",
-                  "description": "Remote web URL (http/https) or absolute file path to a local HTML file to display in the viewer. Used when kind='in_app_preview'."
+                  "description": "Absolute path (or file:// URL) of a LOCAL HTML file to display in the view-only viewer. http(s) URLs are rejected. Used when kind='in_app_preview'."
                 },
                 "ui_intent": {
                   "type": "string"

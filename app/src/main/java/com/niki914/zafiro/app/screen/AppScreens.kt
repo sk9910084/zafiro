@@ -350,11 +350,17 @@ object AppScreens : Screens {
             }
             return OpenResult.Opened(existing.info())
         }
-        when (vdController.prepare()) {
-            VirtualDisplayPrepareResult.Ready -> Unit
-            VirtualDisplayPrepareResult.Denied,
-            VirtualDisplayPrepareResult.Unavailable,
-            VirtualDisplayPrepareResult.BindFailed -> return OpenResult.Rejected("SHIZUKU_UNAVAILABLE")
+        val prepared = vdController.prepare()
+        val rejectCode = when (prepared) {
+            VirtualDisplayPrepareResult.Ready -> null
+            VirtualDisplayPrepareResult.NotInstalled -> "SHIZUKU_NOT_INSTALLED"
+            VirtualDisplayPrepareResult.NotRunning -> "SHIZUKU_NOT_RUNNING"
+            VirtualDisplayPrepareResult.Denied -> "SHIZUKU_DENIED"
+            VirtualDisplayPrepareResult.BindFailed -> "SHIZUKU_BIND_FAILED"
+        }
+        if (rejectCode != null) {
+            Logger.w(TAG, "openVirtual rejected: $rejectCode")
+            return OpenResult.Rejected(rejectCode)
         }
         return runCatchingCancellable {
             val (width, height, dpi) = virtualDisplaySize(applicationContext())

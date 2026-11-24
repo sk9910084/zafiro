@@ -75,18 +75,15 @@ fun AssistantOutputText(
     }
 }
 
+/**
+ * Only local HTML reports go to the built-in (view-only) viewer.
+ * http(s) links fall through to the system handler so they open in the user's real browser.
+ */
 internal fun isWebOrHtmlPreviewable(uri: String): Boolean {
     val trimmed = uri.trim()
-    if (trimmed.startsWith("http://", ignoreCase = true) || trimmed.startsWith("https://", ignoreCase = true)) {
-        return true
-    }
-    if (trimmed.startsWith("file://", ignoreCase = true)) {
-        return true
-    }
-    if (trimmed.startsWith("/") && (trimmed.endsWith(".html", ignoreCase = true) || trimmed.endsWith(".htm", ignoreCase = true))) {
-        return true
-    }
-    return false
+    val isHtml = trimmed.endsWith(".html", ignoreCase = true) || trimmed.endsWith(".htm", ignoreCase = true)
+    if (!isHtml) return false
+    return trimmed.startsWith("/") || trimmed.startsWith("file://", ignoreCase = true)
 }
 
 @Composable

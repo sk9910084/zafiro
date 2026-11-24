@@ -12,3 +12,5 @@ description: Load this skill for tasks that require using a browser or interacti
 ## Chrome
 
 Chrome delivers a native-like experience on Android. Web pages appear directly in the view tree, allowing you to read content, tap links, and fill forms just like interacting with a native app.
+
+If virtual display creation fails, you MUST fall back to `phone` (main screen) and launch Chrome there. NEVER use `in_app_preview` for task execution.

@@ -20,9 +20,11 @@ class ScreensBuiltin : TextResultBuiltinTool() {
     override val defaultEnabled: Boolean = true
     override val description: String =
         "Manage screen surfaces. Operations: 'list' (list all active screens with their id, " +
-            "kind, and dimensions), 'open' (create a new 'virtual_display' or 'browser' screen), " +
+            "kind, and dimensions), 'open' (create a new 'virtual_display' screen), " +
             "'close' (destroy an active screen other than 'phone'). Use the returned screen id with " +
-            "screen_operation, screenshot, and open."
+            "screen_operation, screenshot, and open. If 'open' fails, continue on screen 'phone'; " +
+            "never fall back to in_app_preview. Websites are opened with the open tool " +
+            "(kind='global', uri='https://...'), not with a screen."
     override val inputSchemaJson: String? = SCHEMA
 
     override suspend fun invokeText(request: BuiltinToolRequest): TextToolResult {
@@ -48,8 +50,10 @@ class ScreensBuiltin : TextResultBuiltinTool() {
     private suspend fun open(screens: Screens, kind: String?, callerConversationId: String?): TextToolResult {
         val openKind = when (kind) {
             "virtual_display" -> OpenKind.VirtualDisplay
-            "browser" -> OpenKind.Browser
-            else -> return invalidArguments("kind must be virtual_display or browser.")
+            else -> return invalidArguments(
+                "kind must be virtual_display. To browse a website use the open tool with " +
+                    "kind='global', screen='phone' and a uri.",
+            )
         }
         return when (val opened = screens.open(openKind, callerConversationId)) {
             is OpenResult.Opened -> TextToolResult.success(opened.info.encode())
@@ -59,7 +63,7 @@ class ScreensBuiltin : TextResultBuiltinTool() {
             )
             is OpenResult.Rejected -> TextToolResult.failure(
                 code = opened.code,
-                message = opened.code,
+                message = rejectedOpenMessage(opened.code),
             )
         }
     }
@@ -76,17 +80,35 @@ class ScreensBuiltin : TextResultBuiltinTool() {
     }
 
     private companion object {
+        private val VIRTUAL_DISPLAY_UNAVAILABLE_CODES = setOf(
+            "SHIZUKU_NOT_INSTALLED",
+            "SHIZUKU_NOT_RUNNING",
+            "SHIZUKU_DENIED",
+            "SHIZUKU_BIND_FAILED",
+            "DISPLAY_FAILED",
+            "UNKNOWN_ERROR",
+        )
+
+        /** Mandatory-fallback hint: the agent must keep going on 'phone', not on the in-app viewer. */
+        private fun rejectedOpenMessage(code: String): String {
+            if (code !in VIRTUAL_DISPLAY_UNAVAILABLE_CODES) return code
+            return "$code: the virtual display is unavailable (Shizuku/display setup is incomplete on " +
+                "this phone). Do not retry. Continue the task on screen 'phone' (open apps with the " +
+                "open tool, kind='global', screen='phone') and never use in_app_preview for task " +
+                "execution. Tell the user the Virtual display page shows which setup step is missing."
+        }
+
         private val SCHEMA = """
             {
               "type": "object",
               "properties": {
                 "operation": {
                   "type": "string",
-                  "description": "Operation to perform: 'list' (list all screens), 'open' (open new screen surface), 'close' (close an existing screen)."
+                  "description": "Operation to perform: 'list' (list all screens), 'open' (open a new virtual display), 'close' (close an existing screen)."
                 },
                 "kind": {
                   "type": "string",
-                  "description": "Screen kind to open: 'virtual_display' or 'browser'. Required when operation is 'open'."
+                  "description": "Screen kind to open: 'virtual_display'. Required when operation is 'open'."
                 },
                 "screen": {
                   "type": "string",

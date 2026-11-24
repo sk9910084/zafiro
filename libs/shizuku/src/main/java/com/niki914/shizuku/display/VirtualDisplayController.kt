@@ -21,9 +21,35 @@ sealed interface StartAppResult {
 
 sealed interface VirtualDisplayPrepareResult {
     data object Ready : VirtualDisplayPrepareResult
+
+    /** Shizuku app is not installed. */
+    data object NotInstalled : VirtualDisplayPrepareResult
+
+    /** Shizuku is installed but its service is not running (binder dead). It must be (re)started. */
+    data object NotRunning : VirtualDisplayPrepareResult
+
+    /** Shizuku is running but Zafiro has not been granted permission. */
     data object Denied : VirtualDisplayPrepareResult
-    data object Unavailable : VirtualDisplayPrepareResult
+
+    /** Shizuku is running and authorized, but binding Zafiro's user service failed or timed out. */
     data object BindFailed : VirtualDisplayPrepareResult
+}
+
+/** Live snapshot of the Shizuku prerequisites, used to tell the user exactly which step is missing. */
+data class ShizukuStatus(
+    val installed: Boolean,
+    val running: Boolean,
+    val authorized: Boolean,
+)
+
+fun readShizukuStatus(
+    context: Context,
+    client: ShizukuClient = ShizukuClient.create(context),
+): ShizukuStatus {
+    val installed = runCatching { client.isInstalled }.getOrDefault(false)
+    val running = installed && runCatching { client.isBinderAlive }.getOrDefault(false)
+    val authorized = running && runCatching { client.isAuthorized }.getOrDefault(false)
+    return ShizukuStatus(installed = installed, running = running, authorized = authorized)
 }
 
 /**
@@ -56,12 +82,14 @@ internal class RealVirtualDisplayController(
     private var connection: ShizukuUserServiceConnection<IShizukuVirtualDisplayService>? = null
 
     override suspend fun prepare(): VirtualDisplayPrepareResult {
-        if (!client.isInstalled) return VirtualDisplayPrepareResult.Unavailable
+        if (!client.isInstalled) return VirtualDisplayPrepareResult.NotInstalled
+        // Check the binder BEFORE asking for permission: with a dead binder the request can only
+        // fail, which used to be reported as "denied".
+        if (!client.isBinderAlive) return VirtualDisplayPrepareResult.NotRunning
         if (!client.isAuthorized) {
             val granted = client.requestPermission()
             if (!granted) return VirtualDisplayPrepareResult.Denied
         }
-        if (!client.isBinderAlive) return VirtualDisplayPrepareResult.Unavailable
 
         val active = connection
         if (active != null && active.isAlive) {
