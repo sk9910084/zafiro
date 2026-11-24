@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.niki914.zafiro.business.remote"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         minSdk = 26

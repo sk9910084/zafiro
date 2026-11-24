@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.niki914.okia"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         minSdk = 26
