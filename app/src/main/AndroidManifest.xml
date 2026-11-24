@@ -131,6 +131,12 @@
             android:name="leakcanary.internal.activity.LeakActivity"
             android:enabled="false"
             tools:replace="android:enabled" />
+        <!-- Launcher icon asal me is alias se aata hai — ise bhi band karo,
+             warna Leaks icon phir bhi dikhega. Library andar hi rahegi. -->
+        <activity-alias
+            android:name="leakcanary.internal.activity.LeakLauncherActivity"
+            android:enabled="false"
+            tools:replace="android:enabled" />
 
         <service
             android:name="com.niki914.zafiro.mod.feat.ZafiroAccessibilityService"
