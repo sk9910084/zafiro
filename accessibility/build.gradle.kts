@@ -4,7 +4,7 @@ plugins {
 
 android {
     namespace = "com.niki914.zafiro.accessibility"
-    compileSdk = 37
+    compileSdk = 36
 
     defaultConfig {
         minSdk = 26

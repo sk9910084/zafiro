@@ -4,7 +4,7 @@ plugins {
 
 android {
     namespace = "com.niki914.store"
-    compileSdk = 37
+    compileSdk = 36
 
     defaultConfig {
         minSdk = 26

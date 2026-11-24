@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.niki914.libterm.backend.ssh"
-    compileSdk = 37
+    compileSdk = 36
 
     defaultConfig {
         minSdk = 26

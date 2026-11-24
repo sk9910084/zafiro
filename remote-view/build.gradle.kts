@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "com.niki914.zafiro.remoteview"
-    compileSdk = 37
+    compileSdk = 36
 
     defaultConfig {
         minSdk = 26
