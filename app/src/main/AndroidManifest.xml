@@ -124,6 +124,14 @@
             </intent-filter>
         </activity-alias>
 
+        <!-- LeakCanary launcher icon chhupao, library andar hi rahe: detection +
+             heap-dump notification chalu rahenge, sirf home-screen par alag
+             "Leaks" icon nahi dikhega. Library (debugImplementation) nahi hatayi. -->
+        <activity
+            android:name="leakcanary.internal.activity.LeakActivity"
+            android:enabled="false"
+            tools:replace="android:enabled" />
+
         <service
             android:name="com.niki914.zafiro.mod.feat.ZafiroAccessibilityService"
             android:exported="true"
